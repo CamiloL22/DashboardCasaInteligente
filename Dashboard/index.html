@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Casa Inteligente</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+</head>
+<body>
+  <div class="header">
+    <h1>Dashboard Casa Inteligente</h1>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2><i class="fas fa-sun icon"></i> Luz</h2>
+      <p><span id="valor-luz" class="sensor-value">--</span></p>
+      <div class="led-indicators">
+        <span class="led-label">OK</span>
+        <div id="led_amarillo_luz" class="led-circle led-amarillo"></div>
+        <span class="led-label">Oscuro</span>
+        <div id="led_rojo_luz" class="led-circle led-rojo"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-thermometer-half icon"></i> Temperatura</h2>
+      <p><span id="valor-temperatura" class="sensor-value">--</span>°C</p>
+      <div class="led-indicators">
+        <span class="led-label">Frío</span>
+        <div id="led_azul_temp" class="led-circle led-azul"></div>
+        <span class="led-label">Normal</span>
+        <div id="led_amarillo_temp" class="led-circle led-amarillo"></div>
+        <span class="led-label">Calor</span>
+        <div id="led_rojo_temp" class="led-circle led-rojo"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-tint icon"></i> Humedad Ambiente</h2>
+      <p><span id="valor-humedad" class="sensor-value">--</span>%</p>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-seedling icon"></i> Humedad del Suelo</h2>
+      <p><span id="valor-suelo" class="sensor-value">--</span></p>
+      <div class="led-indicators">
+        <span class="led-label">OK</span>
+        <div id="led_verde_suelo" class="led-circle led-verde"></div>
+        <span class="led-label">Seco</span>
+        <div id="led_rojo_suelo" class="led-circle led-rojo"></div>
+      </div>
+    </div>
+
+    <div class="card full-width">
+      <h2><i class="fas fa-chart-line icon"></i> Historial de Temperatura</h2>
+      <canvas id="temperaturaChart"></canvas>
+    </div>
+    <div class="card full-width control-panel">
+      <h2><i class="fas fa-cogs icon"></i> Control General</h2>
+      <button id="btn-on" class="btn btn-primary">Sistema ON</button>
+      <button id="btn-off" class="btn btn-danger">Sistema OFF</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Variables para datos y gráficos ---
+    let temperaturaChart; // Variable global para el gráfico de temperatura
+    const maxDataPoints = 20; // Número máximo de puntos en el gráfico
+    const labels = Array.from({ length: maxDataPoints }, (_, i) => ''); // Etiquetas iniciales vacías
+    const temperaturaData = Array(maxDataPoints).fill(null); // Datos de temperatura iniciales vacíos
+
+    // --- Funciones para el Gráfico ---
+    function initChart() {
+      const ctx = document.getElementById('temperaturaChart').getContext('2d');
+      temperaturaChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Temperatura (°C)',
+            data: temperaturaData,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1,
+            fill: false
+          }]
+        },
+        options: {
+          animation: {
+            duration: 0 // Deshabilita la animación para actualizaciones rápidas
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 40 // Ajusta el rango Y según tus necesidades
+            }
+          }
+        }
+      });
+    }
+
+    function addDataToChart(newTemperature) {
+      // Eliminar el punto de datos más antiguo
+      labels.shift();
+      temperaturaData.shift();
+
+      // Añadir el nuevo punto de datos
+      labels.push(new Date().toLocaleTimeString()); // Hora actual como etiqueta
+      temperaturaData.push(newTemperature);
+
+      // Actualizar el gráfico
+      temperaturaChart.update();
+    }
+
+    // --- Función para actualizar los datos desde el servidor Python ---
+    async function updateData() {
+      try {
+        const response = await fetch('/data'); // Asume que tu servidor Python expone un endpoint /data
+        const data = await response.json();
+        // console.log("Datos recibidos del servidor:", data); // Para depuración
+
+        // Actualizar valores de los sensores en el HTML
+        document.getElementById('valor-luz').textContent = data.luz !== undefined ? data.luz : '--';
+        document.getElementById('valor-temperatura').textContent = data.temperatura !== undefined ? data.temperatura.toFixed(2) : '--';
+        document.getElementById('valor-humedad').textContent = data.humedad !== undefined ? data.humedad.toFixed(2) : '--';
+        document.getElementById('valor-suelo').textContent = data.suelo !== undefined ? data.suelo : '--';
+
+        // Actualizar estado de los LEDs
+        updateLedStatus('led_amarillo_luz', data.led_amarillo_luz);
+        updateLedStatus('led_rojo_luz', data.led_rojo_luz);
+        updateLedStatus('led_azul_temp', data.led_azul_temp);
+        updateLedStatus('led_amarillo_temp', data.led_amarillo_temp);
+        updateLedStatus('led_rojo_temp', data.led_rojo_temp);
+        updateLedStatus('led_verde_suelo', data.led_verde_suelo);
+        updateLedStatus('led_rojo_suelo', data.led_rojo_suelo);
+
+        // Actualizar gráfico de temperatura
+        if (data.temperatura !== undefined) {
+          addDataToChart(data.temperatura);
+        }
+
+      } catch (error) {
+        console.error('Error al obtener datos del servidor:', error);
+      }
+    }
+
+    // Función para actualizar el estado visual de los LEDs
+    function updateLedStatus(id, isOn) {
+      const ledElement = document.getElementById(id);
+      if (ledElement) { // Asegurarse de que el elemento existe
+        if (isOn) {
+          ledElement.classList.add('led-on');
+        } else {
+          ledElement.classList.remove('led-on');
+        }
+      }
+    }
+
+    // --- Controles del sistema (botones ON/OFF) ---
+    document.getElementById('btn-on').addEventListener('click', function() {
+      fetch('/control', { // Asume que tu servidor Python tiene un endpoint /control
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'command=1' // Envía un comando simple
+      })
+      .then(response => response.text())
+      .then(data => console.log('Respuesta de control:', data)) // Usa console.log para depuración
+      .catch(error => console.error('Error al enviar comando:', error));
+    });
+
+    document.getElementById('btn-off').addEventListener('click', function() {
+      fetch('/control', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'command=0'
+      })
+      .then(response => response.text())
+      .then(data => console.log('Respuesta de control:', data))
+      .catch(error => console.error('Error al enviar comando:', error));
+    });
+
+    // --- Inicializar la aplicación al cargar el DOM ---
+    document.addEventListener('DOMContentLoaded', function() {
+      initChart(); // Inicializa el gráfico
+      // Actualizar datos cada 2 segundos (2000 ms)
+      setInterval(updateData, 2000);
+      updateData(); // Llamar una vez al inicio para cargar los datos iniciales
+    });
+  </script>
+</body>
+</html>

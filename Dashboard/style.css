@@ -1,0 +1,198 @@
+/* --- Código CSS (Archivo: style.css) --- */
+
+/* Variables CSS para colores */
+:root {
+  --primary-color: #4a90e2; /* Azul */
+  --secondary-color: #4caf50; /* Verde */
+  --warning-color: #f0ad4e; /* Naranja */
+  --danger-color: #d9534f; /* Rojo */
+  --light-color: #f8f9fa; /* Gris claro */
+  --dark-color: #343a40; /* Gris oscuro */
+  --background-card: #ffffff; /* Fondo blanco para tarjetas */
+  --border-color: #e0e0e0; /* Color del borde */
+}
+
+/* Estilos generales del cuerpo */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f3f3f3; /* Fondo gris claro */
+  color: var(--dark-color);
+  line-height: 1.6;
+}
+
+/* Encabezado del dashboard */
+.header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2.5em;
+}
+
+/* Contenedor principal de las tarjetas */
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Columnas responsivas */
+  gap: 20px; /* Espacio entre las tarjetas */
+  padding: 20px;
+  max-width: 1200px; /* Ancho máximo del contenedor */
+  margin: 0 auto; /* Centrar el contenedor */
+}
+
+/* Estilo para cada tarjeta de sensor/información */
+.card {
+  background-color: var(--background-card);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card:hover {
+  transform: translateY(-5px); /* Efecto hover */
+}
+
+.card h2 {
+  color: var(--primary-color);
+  font-size: 1.8em;
+  margin-top: 0;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card .icon {
+  margin-right: 10px;
+  color: var(--secondary-color); /* Color para los iconos */
+}
+
+.sensor-value {
+  font-size: 3em;
+  font-weight: bold;
+  color: var(--dark-color);
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Estilo para las tarjetas que ocupan todo el ancho */
+.card.full-width {
+  grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
+  text-align: left;
+}
+
+.card.full-width h2 {
+  justify-content: flex-start;
+}
+
+/* Estilos específicos para el panel de control */
+.control-panel {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los botones se envuelvan en líneas */
+  justify-content: center;
+  gap: 15px; /* Espacio entre botones */
+}
+
+/* Estilos para botones */
+.btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  color: white;
+  flex-grow: 1; /* Permite que los botones crezcan para llenar el espacio */
+  max-width: 200px; /* Ancho máximo para los botones en el panel de control */
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: #387ac6; /* Tono más oscuro de azul */
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+  background-color: #c9302c; /* Tono más oscuro de rojo */
+}
+
+
+/* Estilos para los indicadores LED */
+.led-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  flex-wrap: wrap; /* Asegura que los indicadores se envuelvan si hay muchos */
+}
+
+.led-circle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: gray; /* Estado OFF por defecto */
+  border: 1px solid #ccc;
+  margin: 0 5px;
+  transition: background-color 0.3s ease;
+}
+
+.led-label {
+    font-size: 0.9em;
+    color: var(--dark-color);
+    margin-right: 5px;
+    margin-left: 10px; /* Para separar la etiqueta del LED anterior */
+}
+
+/* Colores específicos para LEDs cuando están "ON" */
+.led-amarillo.led-on { background-color: gold; box-shadow: 0 0 8px gold; }
+.led-rojo.led-on { background-color: red; box-shadow: 0 0 8px red; }
+.led-azul.led-on { background-color: blue; box-shadow: 0 0 8px blue; }
+.led-verde.led-on { background-color: green; box-shadow: 0 0 8px green; }
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+    padding: 10px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .header h1 {
+    font-size: 2em;
+  }
+
+  .sensor-value {
+    font-size: 2.5em;
+  }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        width: 100%; /* Botones de control ocupan todo el ancho */
+        max-width: none;
+    }
+    .control-panel {
+        flex-direction: column; /* Apilar botones verticalmente */
+    }
+}
